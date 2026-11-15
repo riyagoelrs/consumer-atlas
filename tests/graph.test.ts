@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { findPath, searchNodes } from '../lib/graph';
+import { nodes,edges,themes } from '../lib/seed';
+test('search resolves aliases and ignores case',()=>{assert.equal(searchNodes(nodes,'cPg')[0].id,'cpg');assert.equal(searchNodes(nodes,'hannah')[0].id,'ballerina');assert.equal(searchNodes(nodes,'unfindable').length,0);});
+test('Balletcore connects to CPG through meaningful intermediate entities',()=>{const path=findPath(edges,'balletcore','cpg');assert.ok(path&&path.length>=3);let current='balletcore';for(const edge of path){assert.ok(edge.explanation.length>25);assert.ok(edge.source===current||edge.target===current);current=edge.source===current?edge.target:edge.source;}assert.equal(current,'cpg');});
+test('pathfinding prefers evidence-backed routes over unsupported shortcuts',()=>{const base=edges[0];const e=[{...base,id:'direct',source:'a',target:'c',confidence:.1,evidence:[],status:'hypothesis' as const},{...base,id:'ab',source:'a',target:'b',confidence:1,evidence:['source'],status:'verified' as const},{...base,id:'bc',source:'b',target:'c',confidence:1,evidence:['source'],status:'verified' as const}];assert.deepEqual(findPath(e,'a','c')?.map(e=>e.id),['ab','bc']);assert.equal(findPath(e,'a','missing'),null);assert.deepEqual(findPath(e,'a','a'),[]);});
+test('seed relationships have valid endpoints and evidence references',()=>{assert.ok(themes.length>=8);for(const e of edges){assert.ok(nodes.some(n=>n.id===e.source));assert.ok(nodes.some(n=>n.id===e.target));if(e.status==='verified')assert.ok(e.evidence.length);assert.notEqual(e.source,e.target);}});

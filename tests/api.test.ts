@@ -1,0 +1,20 @@
+import test from 'node:test';import assert from 'node:assert/strict';import { mkdtempSync } from 'node:fs';import { tmpdir } from 'node:os';import { join } from 'node:path';
+process.env.ATLAS_DB_PATH=join(mkdtempSync(join(tmpdir(),'atlas-api-')),'test.sqlite');process.env.ADMIN_TOKEN='a'.repeat(64);
+import { GET,POST } from '../app/api/admin/route';import { atlas,db } from '../lib/db';
+const req=(action:string,data:unknown,token=true)=>new Request('http://localhost/api/admin',{method:'POST',headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${process.env.ADMIN_TOKEN}`}:{})},body:JSON.stringify({action,data})});
+test('write API rejects unauthenticated requests',async()=>{assert.equal((await POST(req('node',{},false))).status,401);assert.equal(GET(new Request('http://localhost/api/admin')).status,401);});
+test('admin can create and update persistent entities',async()=>{const n={name:'API test entity',type:'Behavior',description:'Test-only research record',cultural:'Test context',commercial:'Test interpretation',themes:['food']};const created=await POST(req('node',n));assert.equal(created.status,200);const {id}=await created.json();const updated=await POST(req('node',{...n,id,name:'Updated API record'}));assert.equal(updated.status,200);assert.equal(atlas().nodes.find(n=>n.id===id)?.name,'Updated API record');});
+test('verified edges require evidence; invalid operations roll back',async()=>{const before=atlas().edges.length;const r=await POST(req('edge',{source:'balletcore',target:'cpg',type:'Influences',explanation:'Test claim',status:'verified',confidence:.9,evidence:[]}));assert.equal(r.status,400);assert.equal(atlas().edges.length,before);});
+test('manual source attaches to a node and its connection without fabricated metadata',async()=>{const r=await POST(req('evidence',{url:'https://example.com/api-test',title:'Test fixture source',annotation:'Test-only record',nodeIds:['balletcore'],edgeIds:['edge-1']}));assert.equal(r.status,200);const {id}=await r.json();assert.ok(atlas().edges.find(e=>e.id==='edge-1')?.evidence.includes(id));assert.ok(db().prepare('SELECT * FROM node_sources WHERE node_id=? AND source_id=?').get('balletcore',id));});
+test('cross-origin writes are rejected',async()=>{const request=req('node',{});request.headers.set('origin','https://untrusted.example');assert.equal((await POST(request)).status,401);});
+test('featured paths persist and reject disconnected or identical endpoints',async()=>{
+ const invalid=await POST(req('featuredPath',{title:'Invalid path',description:'Test fixture',from:'balletcore',to:'balletcore'}));assert.equal(invalid.status,400);
+ const r=await POST(req('featuredPath',{title:'Test editorial journey',description:'A deliberately curated test path.',from:'balletcore',to:'cpg'}));assert.equal(r.status,200);assert.equal(atlas().featuredPath?.title,'Test editorial journey');
+});
+test('reviewed connection proposals cannot publish verified claims or overwrite existing edges',async()=>{
+ const d=db();d.prepare('INSERT INTO editorial_reviews VALUES(?,?,?,?,?,NULL)').run('review-test','source',JSON.stringify({sourceId:'ballet-ref'}),'pending',new Date().toISOString());
+ const connection={source:'balletcore',target:'coquette',type:'Associated with',explanation:'An explicitly reviewed test hypothesis.',status:'verified',confidence:.5,evidence:['ballet-ref'],bidirectional:true};
+ const denied=await POST(req('review',{id:'review-test',decision:'approved',nodeIds:['balletcore','coquette'],connection}));assert.equal(denied.status,400);assert.equal(d.prepare('SELECT status FROM editorial_reviews WHERE id=?').get('review-test')?.status,'pending');
+ const approved=await POST(req('review',{id:'review-test',decision:'approved',nodeIds:['balletcore','coquette'],connection:{...connection,status:'hypothesis'}}));assert.equal(approved.status,200);const edge=atlas().edges.find(e=>e.explanation===connection.explanation);assert.equal(edge?.status,'hypothesis');assert.deepEqual(edge?.evidence,['ballet-ref']);
+ const duplicate=await POST(req('review',{id:'review-test',decision:'approved',nodeIds:[]}));assert.equal(duplicate.status,400);
+});
