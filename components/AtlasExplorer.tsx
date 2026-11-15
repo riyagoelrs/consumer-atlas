@@ -4,16 +4,17 @@ import Link from 'next/link';
 import { ArrowDown, ArrowRight, ArrowUpRight, Bookmark, Check, ChevronDown, ChevronRight, Compass, Filter, GitBranch, Globe2, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react';
 import type { Atlas, Edge, Source } from '@/lib/types';
 import { findPath, searchNodes } from '@/lib/graph';
+import { loadAtlas } from '@/lib/load-atlas';
 import AtlasCanvas from './AtlasCanvas';
 import SocialEvidence from './SocialEvidence';
 type Saved={name:string;theme:string;selected:string|null;mode:string;investor:boolean};
 const date=(s:string)=>new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});
-export default function AtlasExplorer(){
- const [data,setData]=useState<Atlas|null>(null),[error,setError]=useState(''),[stale,setStale]=useState(false),[query,setQuery]=useState(''),[debounced,setDebounced]=useState('');
+export default function AtlasExplorer({initialData=null,initialError=''}:{initialData?:Atlas|null;initialError?:string}){
+ const [data,setData]=useState<Atlas|null>(initialData),[error,setError]=useState(initialError),[stale,setStale]=useState(false),[query,setQuery]=useState(''),[debounced,setDebounced]=useState('');
  const [mode,setMode]=useState('Universe'),[theme,setTheme]=useState(''),[selected,setSelected]=useState<string|null>(null),[edgeId,setEdgeId]=useState<string|null>(null),[investor,setInvestor]=useState(false);
  const [type,setType]=useState(''),[relationship,setRelationship]=useState(''),[confidence,setConfidence]=useState(''),[platform,setPlatform]=useState(''),[verified,setVerified]=useState(false),[mobileFilters,setMobileFilters]=useState(false);
  const [panel,setPanel]=useState<'research'|'signals'|'path'|'saved'|'sources'>('research'),[from,setFrom]=useState('balletcore'),[to,setTo]=useState('cpg'),[path,setPath]=useState<Edge[]>([]),[pathMessage,setPathMessage]=useState(''),[days,setDays]=useState('all'),[saved,setSaved]=useState<Saved[]>([]),[toast,setToast]=useState('');
- const refresh=useCallback(async()=>{try{const response=await fetch('/api/atlas');if(!response.ok)throw new Error('The research database is unavailable.');setData(await response.json());setError('');setStale(false);}catch(e){setStale(true);setError(e instanceof Error?e.message:'Unable to load research.');}},[]);
+ const refresh=useCallback(async()=>{try{setData(await loadAtlas());setError('');setStale(false);}catch(e){setStale(true);setError(e instanceof Error?e.message:'Unable to load research.');}},[]);
  useEffect(()=>{void refresh();const interval=setInterval(refresh,30000);try{setSaved(JSON.parse(localStorage.getItem('atlas-views')||'[]'));}catch{}return ()=>clearInterval(interval);},[refresh]);
  useEffect(()=>{const t=setTimeout(()=>setDebounced(query),180);return ()=>clearTimeout(t);},[query]);
  useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(''),3500);return ()=>clearTimeout(t);},[toast]);

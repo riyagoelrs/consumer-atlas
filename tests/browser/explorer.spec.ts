@@ -13,3 +13,20 @@ test('editorial access and entity/evidence writes work end to end',async({page,r
 test('editors can curate a persistent featured journey',async({page})=>{
  await page.goto('/admin');await page.getByLabel('ADMIN ACCESS TOKEN').fill(process.env.ADMIN_TOKEN||'');await page.getByRole('button',{name:'Open the editorial desk'}).click();await page.getByRole('button',{name:'Featured path',exact:true}).click();await page.getByLabel('Story title').fill('A curated browser test journey');await page.getByLabel('Editorial introduction').fill('A test route from culture to commerce.');await page.getByRole('button',{name:'Publish featured path'}).click();await expect(page.getByRole('status')).toHaveText('Saved to the research database.');await page.goto('/');await expect(page.locator('.editorial-panel h2')).toHaveText('A curated browser test journey');await page.getByRole('button',{name:'Explore this connection'}).click();await expect(page.locator('.path-step')).toHaveCount(5);
 });
+test('the initial graph renders even when the browser cannot execute JavaScript',async({browser})=>{
+ const context=await browser.newContext({javaScriptEnabled:false});
+ const page=await context.newPage();await page.goto('/');
+ await expect(page.getByRole('heading',{name:'A living map of culture & commerce.'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Explore Fashion & Aesthetics',exact:true})).toBeVisible();
+ await expect(page.getByText('Opening the research universe…')).toHaveCount(0);await context.close();
+});
+test('failed browser refresh retains the server-rendered graph and supports retry',async({page})=>{
+ await page.route('**/api/atlas',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'test database failure'})}));
+ await page.goto('/');
+ await expect(page.getByRole('heading',{name:'A living map of culture & commerce.'})).toBeVisible();
+ await expect(page.locator('.error-banner')).toBeVisible();
+ await page.unroute('**/api/atlas');await page.locator('.error-banner').getByRole('button',{name:'Retry'}).click();
+ await expect(page.locator('.error-banner')).toHaveCount(0);
+ await page.getByRole('button',{name:'Explore Fashion & Aesthetics',exact:true}).click();
+ await expect(page.getByLabel('Interactive knowledge network')).toBeVisible();
+});

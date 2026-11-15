@@ -63,7 +63,7 @@ RSS adapter → observed sources + signals → editorial queue → source attach
 Manual links → canonical source objects → node and edge evidence
 ```
 
-`lib/seed.ts` is server-side seed data, not a graph hardcoded inside the visualization. `GET /api/atlas` reads persistent state; node evidence is lazy-loaded separately. `lib/graph.ts` contains pure pathfinding and search. `lib/evidence.ts` canonicalizes public URLs and derives fixed-provider official embed URLs. `migrations/001_init.sql` defines themes, nodes, memberships, edges, evidence, sources, social posts, signals, node events, jobs, reviews, saved views, watchlists and metadata. Current migrations are applied idempotently on database open. Introduce ordered migration versions before making destructive schema changes.
+`lib/seed.ts` is server-side seed data, not a graph hardcoded inside the visualization. `GET /api/atlas` reads persistent state; node evidence is lazy-loaded separately. The opening page reads the graph on the server and includes it in the initial HTML, so it does not depend on a browser fetch to leave a loading screen. Background refreshes have a 15-second timeout, retain the displayed graph on failure, and expose a retry action. Database initialization failures show an actionable startup error. `lib/graph.ts` contains pure pathfinding and search. `lib/evidence.ts` canonicalizes public URLs and derives fixed-provider official embed URLs. `migrations/001_init.sql` defines themes, nodes, memberships, edges, evidence, sources, social posts, signals, node events, jobs, reviews, saved views, watchlists and metadata. Current migrations are applied idempotently on database open. Introduce ordered migration versions before making destructive schema changes.
 
 ### API
 
