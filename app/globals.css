@@ -10,3 +10,5 @@
 .theme-label{font-size:24px}.system-subtitle{font-size:8px}.system-number{font-size:11px}.node-label{font-size:18px}.theme-list button{font-size:10px}.filter-section label{font-size:10px}.filter-foot p{font-size:10px}.filter-section select{font-size:10px}
 @media(max-width:700px){.theme-label{font-size:25px}.system-subtitle{font-size:8px}}
 @media(prefers-reduced-motion:reduce){.graph-node,.graph-edge path{transition:none!important}}
+
+.preview-notice{padding:10px 22px;border-bottom:1px solid var(--line);background:#e9e7dc;color:#626a58;font-size:10px;line-height:1.6;letter-spacing:.3px}

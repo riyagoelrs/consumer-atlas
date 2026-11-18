@@ -50,6 +50,12 @@ Open the development server on port 3000 using your environment's supported acce
 
 Browser tests use `/usr/bin/chromium`, overridable with `CHROMIUM_PATH`. They never add fixture records to the main research database. Test-only example.com records are confined to isolated databases.
 
+## Open a portable browser preview
+
+Run `npm run preview:build` to export public research into `artifacts/consumer-atlas-preview.html`. Open that HTML file directly in a modern browser. The single file embeds its React/D3 code, CSS, fonts, and source data; no npm process or backend is needed to explore it. Search, pan/zoom, theme drilldown, node/edge panels, pathfinding, filters, Investor Lens and browser-local saved views remain interactive. It is explicitly labeled an offline research snapshot; live ingestion and admin writes require the full app. External source links and manually loaded third-party embeds still require Internet access.
+
+Run `npm run preview:test` to rebuild and verify the standalone document with network access disabled. Managed cloud Chrome blocks `file:` navigation, so this check loads the unchanged HTML through an intercepted local document URL; it verifies there are no backend or external asset requests. Direct file opening in Safari must be checked on the user's machine. The generated HTML contains only the public atlas and attached public evidence, not credentials, editorial queues or watchlists. Review research content before sharing an export.
+
 ## Architecture
 
 ```
