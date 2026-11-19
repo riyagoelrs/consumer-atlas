@@ -1,3 +1,4 @@
+import { expandedNodes, expandedSources, expandedEdges } from './expanded-research';
 import type { AtlasNode, Edge, Source, Theme } from './types';
 export const themes: Theme[] = [
  ['fashion','Fashion & Aesthetics','THE VISUAL LANGUAGE OF BELONGING','#9a645a',360,290,112],
@@ -40,8 +41,8 @@ const rows: [string,string,string,string[],string,string,string][] = [
  ['social-discovery','Social discovery','Technology',['digital','commerce','media'],'People encounter ideas and goods through social platforms and peer networks.','Algorithmic visibility shapes what feels culturally salient.','Measure discovery separately from conversion and customer retention.'],
  ['distribution','Audience as distribution','Investment thesis',['commerce','digital','media'],'Research hypothesis: a trusted, engaged audience may lower the cost of introducing a product.','Community can create context and trust around an offer.','Validate contribution margin, owned-channel conversion and repeat orders. This is a research hypothesis, not investment advice.'],
 ];
-export const nodes: AtlasNode[] = rows.map(([id,name,type,ts,description,cultural,commercial],i)=>({id,name,type,themes:ts,description,cultural,commercial,aliases:id==='cpg'?['CPG']:id==='ballerina'?['Hannah Neeleman','Ballerina Farm']:[],status: id==='distribution'?'hypothesis':'interpretation',updated:'2026-11-10T00:00:00Z',x: Math.cos(i*2.399)* (150+(i%4)*68), y:Math.sin(i*2.399)*(140+(i%4)*62)}));
-export const sources: Source[] = [
+const coreNodes: AtlasNode[] = rows.map(([id,name,type,ts,description,cultural,commercial],i)=>({id,name,type,themes:ts,description,cultural,commercial,aliases:id==='cpg'?['CPG']:id==='ballerina'?['Hannah Neeleman','Ballerina Farm']:[],status: id==='distribution'?'hypothesis':'interpretation',updated:'2026-11-10T00:00:00Z',x: Math.cos(i*2.399)* (150+(i%4)*68), y:Math.sin(i*2.399)*(140+(i%4)*62)}));
+const coreSources: Source[] = [
  {id:'farm-site',title:'Ballerina Farm — official store',url:'https://ballerinafarm.com/',publisher:'Ballerina Farm',platform:'website',published:null,annotation:'Primary destination for the business and its current product catalogue. Availability has not been checked in this environment.',available:'unchecked'},
  {id:'farm-profile',title:'Ballerina Farm — official Instagram profile',url:'https://www.instagram.com/ballerinafarm/',publisher:'Ballerina Farm',platform:'instagram',published:null,annotation:'Profile destination, not a specific post. No engagement metrics or quotations are stored.',available:'unchecked'},
  {id:'nara-profile',title:'Nara Smith — public Instagram profile',url:'https://www.instagram.com/naraaziza/',publisher:'Nara Smith',platform:'instagram',published:null,annotation:'Public profile destination. Specific post embeds can be added by an editor after verification.',available:'unchecked'},
@@ -84,4 +85,8 @@ const relationships:E[]=[
  ['repair','cottagecore','Shares an aesthetic with','Mending and craft can overlap with pastoral imagery, without implying shared consumer motivations.'],
  ['merch','romantic','Associated with','A lifestyle narrative can connect everyday rituals to objects.'],
 ];
-export const edges: Edge[]=relationships.map(([source,target,type,explanation,evidence=[],confidence=.76,bidirectional=false],i)=>({id:`edge-${i+1}`,source,target,type,explanation,evidence,confidence,bidirectional,status:source==='distribution'||target==='distribution'?'hypothesis':source==='ballerina'&&target==='premium-food'?'verified':'interpretation',reviewed:'2026-11-10T00:00:00Z'}));
+const coreEdges: Edge[]=relationships.map(([source,target,type,explanation,evidence=[],confidence=.76,bidirectional=false],i)=>({id:`edge-${i+1}`,source,target,type,explanation,evidence,confidence,bidirectional,status:source==='distribution'||target==='distribution'?'hypothesis':source==='ballerina'&&target==='premium-food'?'verified':'interpretation',reviewed:'2026-11-10T00:00:00Z'}));
+
+export const nodes=[...coreNodes,...expandedNodes];
+export const sources=[...coreSources,...expandedSources];
+export const edges=[...coreEdges,...expandedEdges];

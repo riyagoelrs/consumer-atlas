@@ -2,6 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { themes, nodes, edges, sources } from './seed';
+import { expandedNodes, expandedSources, expandedEdges, expandedNodeSources } from './expanded-research';
 import type { Atlas, AtlasNode, Edge, Source } from './types';
 let instance: DatabaseSync | undefined;
 export function db(){
@@ -21,6 +22,21 @@ export function db(){
    d.prepare("INSERT INTO signals VALUES(?,NULL,NULL,?,'seed',?,NULL)").run('seed-catalogue','Foundational research collection added',new Date().toISOString());
    d.prepare("INSERT INTO metadata VALUES('seed-v1','1')").run(); d.exec('COMMIT');
   }catch(e){d.exec('ROLLBACK');throw e;}
+ }
+ if(!d.prepare("SELECT value FROM metadata WHERE key='catalogue-v2'").get()){
+  d.exec('BEGIN');
+  try{
+   const sourceIds=new Map<string,string>();
+   for(const s of expandedSources){
+    const existing=d.prepare('SELECT id FROM sources WHERE url=? OR id=? LIMIT 1').get(s.url,s.id);
+    if(existing)sourceIds.set(s.id,String(existing.id));else{saveSource(s,d);sourceIds.set(s.id,s.id);}
+   }
+   for(const n of expandedNodes)if(!d.prepare('SELECT id FROM nodes WHERE id=?').get(n.id))saveNode(n,d);
+   for(const e of expandedEdges)if(!d.prepare('SELECT id FROM edges WHERE id=?').get(e.id))saveEdge({...e,evidence:e.evidence.map(id=>sourceIds.get(id)||id)},d);
+   for(const [n,s] of expandedNodeSources)d.prepare('INSERT OR IGNORE INTO node_sources VALUES(?,?)').run(n,sourceIds.get(s)||s);
+   d.prepare("INSERT OR IGNORE INTO signals VALUES('catalogue-v2',NULL,NULL,'Second survey: expanded cultural research catalogue','seed',?,NULL)").run(new Date().toISOString());
+   d.prepare("INSERT INTO metadata VALUES('catalogue-v2','1')").run();d.exec('COMMIT');
+  }catch(error){d.exec('ROLLBACK');instance=undefined;d.close();throw error;}
  }
  return d;
 }

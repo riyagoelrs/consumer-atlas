@@ -30,3 +30,16 @@ test('failed browser refresh retains the server-rendered graph and supports retr
  await page.getByRole('button',{name:'Explore Fashion & Aesthetics',exact:true}).click();
  await expect(page.getByLabel('Interactive knowledge network')).toBeVisible();
 });
+test('expanded atlas exposes brand dossiers, a searchable gazetteer and cartographic references',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('button',{name:'Open OLIPOP',exact:true}).hover();
+ await expect(page.locator('.map-hover')).toContainText('OLIPOP');
+ await page.locator('.header-actions .gazetteer-button').click();
+ await page.getByText('Cartographic notes & reference collections',{exact:true}).click();
+ await expect(page.getByRole('link',{name:'David Rumsey Map Collection'})).toBeVisible();
+ await page.getByLabel('Search the gazetteer').fill('Graza');
+ await expect(page.locator('.gazetteer-list button')).toHaveCount(1);
+ await page.locator('.gazetteer-list button').click();
+ await expect(page.locator('.editorial-panel h2')).toHaveText('Graza');
+ await expect(page.getByRole('link',{name:'Graza — primary reference destination'})).toBeVisible();
+});
