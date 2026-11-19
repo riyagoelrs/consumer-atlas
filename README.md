@@ -52,6 +52,8 @@ Browser tests use `/usr/bin/chromium`, overridable with `CHROMIUM_PATH`. They ne
 
 ## Open a portable browser preview
 
+A ready-to-open export is checked in at [preview/consumer-atlas-preview.html](preview/consumer-atlas-preview.html). On GitHub, use **Download raw file**, then open the downloaded HTML in your browser. Rebuild this distributable with `npm run preview:build -- preview/consumer-atlas-preview.html` after public research changes.
+
 Run `npm run preview:build` to export public research into `artifacts/consumer-atlas-preview.html`. Open that HTML file directly in a modern browser. The single file embeds its React/D3 code, CSS, fonts, and source data; no npm process or backend is needed to explore it. Search, pan/zoom, theme drilldown, node/edge panels, pathfinding, filters, Investor Lens and browser-local saved views remain interactive. It is explicitly labeled an offline research snapshot; live ingestion and admin writes require the full app. External source links and manually loaded third-party embeds still require Internet access.
 
 Run `npm run preview:test` to rebuild and verify the standalone document with network access disabled. Managed cloud Chrome blocks `file:` navigation, so this check loads the unchanged HTML through an intercepted local document URL; it verifies there are no backend or external asset requests. Direct file opening in Safari must be checked on the user's machine. The generated HTML contains only the public atlas and attached public evidence, not credentials, editorial queues or watchlists. Review research content before sharing an export.
