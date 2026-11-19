@@ -99,6 +99,20 @@ Social discovery/search APIs, external news APIs, AI classification and Supabase
 
 ## Scheduling and deployment
 
+### GitHub Pages: browser-viewable research atlas
+
+The reviewed interactive preview is published as a static site from `docs/index.html`. Enable it once in [repository Settings → Pages](https://github.com/riyagoelrs/consumer-atlas/settings/pages): choose **Deploy from a branch**, branch **main**, folder **/docs**, then **Save**. GitHub will build the site; the expected project address is `https://riyagoelrs.github.io/consumer-atlas/`. This address is not a verified deployment until GitHub reports success and the page responds.
+
+This static edition includes the complete interactive atlas and research snapshot, search, pathfinding, source dossiers, and browser-local saved views. Database writes and live ingestion require the Node application. No server process or build command runs on GitHub Pages; all assets and public data are embedded in the HTML. `.nojekyll` prevents extra processing. `docs/version.json` records the source revision and content hash.
+
+After editing the research or UI, rebuild the reviewed export and Pages copy, then commit both:
+
+```sh
+npm run preview:build -- preview/consumer-atlas-preview.html
+npm run pages:build
+node --import tsx scripts/check-preview.ts docs/index.html
+```
+
 ### Working deployment target: persistent Node server
 
 Use a Node 24 host with one durable writable volume. This implementation uses SQLite; run one application instance against that volume. Do not place the database on an ephemeral filesystem or share SQLite files over an unsupported network filesystem.

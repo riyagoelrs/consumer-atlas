@@ -16,7 +16,8 @@
     "worker": "node --env-file-if-exists=.env.local --import tsx scripts/worker.ts",
     "test:e2e": "node --env-file-if-exists=.env.local node_modules/@playwright/test/cli.js test",
     "preview:build": "node --import tsx scripts/preview.ts",
-    "preview:test": "npm run preview:build && node --import tsx scripts/check-preview.ts"
+    "preview:test": "npm run preview:build && node --import tsx scripts/check-preview.ts",
+    "pages:build": "node --import tsx scripts/pages.ts"
   },
   "dependencies": {
     "@fontsource/dm-sans": "^5.3.0",
